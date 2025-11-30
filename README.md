@@ -1,0 +1,1 @@
+# AI_yontaku_study
