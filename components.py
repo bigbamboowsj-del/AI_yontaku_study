@@ -413,9 +413,11 @@ def show_all_players_result(q, correct_index):
             answer_label = ct.CHOICE_LABELS[answer_index]
             answer_text = f"{answer_label}: {options[answer_index]}"
         
-        # 結果表示
+        # 結果表示（ヒント使用時は0.5点）
         if is_correct:
-            st.success(f"**{player_name}**: {answer_text} → **正解！ (+1点)**", icon=ct.ICON_CORRECT)
+            hint_used = st.session_state.player_hints_used.get(i, False)
+            points_text = "+0.5点" if hint_used else "+1点"
+            st.success(f"**{player_name}**: {answer_text} → **正解！ ({points_text})**", icon=ct.ICON_CORRECT)
         else:
             st.error(f"**{player_name}**: {answer_text} → **不正解**", icon=ct.ICON_WRONG)
     
