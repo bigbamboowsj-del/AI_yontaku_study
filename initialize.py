@@ -48,6 +48,7 @@ def init_app():
         st.session_state.current_player = 0  # 現在の解答者インデックス（0=A, 1=B, 2=C, 3=D）
         st.session_state.player_scores = {}  # {player_index: {"correct": 0, "total": 0, "points": 0.0}}
         st.session_state.hint_used = False  # 現在の問題でヒントを使用したかどうか
+        st.session_state.player_hints_used = {}  # 各プレイヤーのヒント使用状態 {player_idx: bool}
         st.session_state.question_limit = None  # 問題数制限（Noneは無制限）
         st.session_state.time_limit = None  # 時間制限（秒、Noneは無制限）
         st.session_state.question_start_time = None  # 問題開始時刻

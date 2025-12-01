@@ -137,6 +137,7 @@ def reset_game():
     st.session_state.current_player = 0
     st.session_state.player_scores = {}
     st.session_state.hint_used = False
+    st.session_state.player_hints_used = {}  # 各プレイヤーのヒント使用状態をリセット
     st.session_state.question_start_time = None
     st.session_state.game_finished = False
     st.session_state.player_answers = {}
@@ -277,12 +278,14 @@ def show_answer_area():
     st.markdown(f"#### {ct.ICON_HINT_TITLE} ヒント")
     if st.button(ct.BTN_HINT, key="hint_before_answer", use_container_width=True):
         try:
+            # 現在のプレイヤーのヒント使用フラグを立てる
+            st.session_state.player_hints_used[current_player] = True
             # 正解の解説を取得してヒント生成
             explanations = str(q.get("option_explanations", "")).split("|")
             correct_explanation = explanations[int(q["correct_option"]) - 1] if len(explanations) >= int(q["correct_option"]) else "解説がありません"
             hint = get_hint(correct_explanation, q["difficulty"])
             st.info(hint, icon=ct.ICON_HINT)
-            st.warning("ヒントを見ても得点は変わりません", icon=ct.ICON_INFO)
+            st.warning("ヒントを使用すると正解時の得点が0.5点になります", icon=ct.ICON_INFO)
         except ValueError as e:
             st.error(str(e), icon=":material/error:")
         except Exception as e:
@@ -391,7 +394,9 @@ def show_all_players_result(q, correct_index):
         for player_idx in st.session_state.player_answers.keys():
             answer_idx = st.session_state.player_answers[player_idx]
             is_correct = (answer_idx == correct_index) if answer_idx != -1 else False
-            update_player_score(player_idx, is_correct, False)  # ヒント使用なし
+            # 各プレイヤーのヒント使用状態を取得
+            hint_used = st.session_state.player_hints_used.get(player_idx, False)
+            update_player_score(player_idx, is_correct, hint_used)
         st.session_state.result_processed = True
     
     # 各プレイヤーの結果を表示
@@ -448,17 +453,16 @@ def show_all_players_result(q, correct_index):
                 st.session_state.game_finished = True
                 st.rerun()
             
-            # 問題数制限チェック
+            # 問題数制限チェック（出題された問題数でカウント）
             if st.session_state.question_limit is not None:
-                total_questions = sum(st.session_state.player_scores.get(i, {}).get("total", 0) 
-                                    for i in range(st.session_state.player_count))
-                if total_questions >= st.session_state.question_limit:
+                if st.session_state.question_number > st.session_state.question_limit:
                     st.session_state.game_finished = True
                     st.rerun()
             
             # 次の問題の準備
             st.session_state.current_player = 0  # 最初のプレイヤーに戻す
             st.session_state.player_answers = {}  # 解答記録をクリア
+            st.session_state.player_hints_used = {}  # ヒント使用記録をクリア
             st.session_state.all_players_answered = False
             st.session_state.show_result = False
             st.session_state.question_start_time = time.time()
